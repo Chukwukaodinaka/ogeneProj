@@ -21,7 +21,9 @@ import { defineComponent } from 'vue';
 import { IonTabBar,  IonTabs, IonPage, IonRouterOutlet } from '@ionic/vue';
 import { ellipse, square, triangle, sendOutline,happyOutline,addOutline } from 'ionicons/icons';
 import { VuemojiPicker, EmojiClickEventDetail } from 'vuemoji-picker'
-
+import db from "@/db/main";
+import state from "@/state/main";
+import {getDatabase,ref,push,set} from "firebase/database"
 
 export default defineComponent({
   name: 'TabsPage',
@@ -41,7 +43,7 @@ export default defineComponent({
     return{
       inputMessage:"",
       showEmoji: false,
-      messages: ["Hey","Hey","Where are you from :)","I'm from Zimbabwe","I'm from Thailand","I have a penis","same!","a","b","c"]
+      messages: []
     }
   },
   mounted() {
@@ -66,9 +68,16 @@ export default defineComponent({
   },
   methods:{
     sendMessage(){
-      if(this.inputMessage!=='')
+      const database = getDatabase()
+      const messagesRef = ref(database,'messages')
+
+      if(this.inputMessage!=='' || this.inputMessage !== null)
       {
-        this.messages.push(this.inputMessage)
+        const newMessageRef = push(messagesRef);
+        set(newMessageRef,{
+          username: state.username,
+          content: this.inputMessage
+        })
         this.inputMessage = ''
       }
     },
@@ -76,11 +85,6 @@ export default defineComponent({
       this.inputMessage += detail.unicode
     }
   },
-  provide() {
-    return {
-      messages: this.messages
-    }
-  }
 });
 </script>
 

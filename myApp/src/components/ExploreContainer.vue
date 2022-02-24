@@ -1,38 +1,64 @@
 <template>
-<!--    <strong>{{ name }}</strong>-->
-<!--    <p>Explore <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>-->
 
   <div id="chatMessages" slot="fixed" style="margin-top: 10px">
-    <li v-for="(key,value) in messages" :key="key">{{messages[value]}}</li>
+    <li v-for="message in computedState.messages" :key="message.id" :class="(message.username == computedState.username ? 'current-user':'not-current-user' )">
+      <span class="username">{{message.username}}</span>
+      <p>{{message.content}}</p>
+<!--      <span>{{new Date().toLocaleTimeString()}}</span>-->
+    </li>
   </div>
 </template>
 
-<script lang="ts">
+<script >
 import { defineComponent } from 'vue';
+import state from "@/state/main";
+import {getDatabase,ref,onValue} from "firebase/database"
+
 
 export default defineComponent({
   name: 'ExploreContainer',
-  props:['messages','name'],
+  props:['name'],
   data :function (){
     return{
       count:5
     }
   },
+  computed:{
+    computedState(){
+      return state
+    }
+  },
+  mounted() {
+    const database = getDatabase()
+    const messagesRef = ref(database, 'messages')
+
+
+    // eslint-disable-next-line
+    let vm = this
+
+    onValue(messagesRef, (snapshot) => {
+      const data = snapshot.val()
+      let messages = []
+      Object.keys(data).forEach(key => {
+        messages.push({
+          id: key,
+          username: data[key].username,
+          content: data[key].content
+        })
+      })
+
+      state.messages = messages
+      console.log(JSON.stringify(state) + "kskdk")
+    });
+  },
   watch:{
-    messages : {
+    computedState : {
       deep: true,
       handler (val, oldVal) {
         setTimeout(()=>this.$emit('scrollBottom'),10)
       }
-
     }
   },
-  methods:{
-
-  }
-  // mounted() {
-  //   $refs.input.focus()
-  // }
 });
 </script>
 
@@ -62,23 +88,14 @@ export default defineComponent({
   text-decoration: none;
 }
 
-/*.chat-thread{*/
-/*  margin: 24px auto 0 auto;*/
-/*  padding: 0 20px 0 0;*/
-/*  list-style: none;*/
-/*  overflow-y: scroll;*/
-/*  overflow-x: hidden;*/
-/*}*/
-
  li {
   position: relative;
   clear: both;
   display: inline-block;
-  padding: 16px 40px 16px 20px;
+  padding: 16px 40px 7px 20px;
   margin: 0 0 20px 0;
   font: 16px/20px 'Noto Sans', sans-serif;
   border-radius: 10px;
-  background-color: cornflowerblue;
 }
 
 /* Chat - Avatar */
@@ -98,44 +115,49 @@ li:after {
   content: '';
   width: 0;
   height: 0;
-  border-top: 15px solid cornflowerblue;
 }
 
-li:nth-child(odd) {
-  animation: show-chat-odd 0.15s 1 ease-in;
-  -moz-animation: show-chat-odd 0.15s 1 ease-in;
-  -webkit-animation: show-chat-odd 0.15s 1 ease-in;
-  float: right;
-  margin-right: 80px;
-  color: #0AD5C1;
-}
-
-li:nth-child(odd):before {
-  right: 80px;
-}
-
-li:nth-child(odd):after {
-  border-right: 15px solid transparent;
-  right: -14px;
-  top: 10px;
-}
-
-li:nth-child(even) {
+/**/
+.not-current-user{
   animation: show-chat-even 0.15s 1 ease-in;
   -moz-animation: show-chat-even 0.15s 1 ease-in;
   -webkit-animation: show-chat-even 0.15s 1 ease-in;
+  background-color: white;
   float: left;
   margin-left: 80px;
   color: #0EC879;
 }
 
-li:nth-child(even):before {
+.not-current-user:before {
   left: -80px;
 }
 
-li:nth-child(even):after {
+.not-current-user:after {
+  border-top: 15px solid white;
   border-left: 15px solid transparent;
   left: -14px;
+  top: 10px;
+}
+
+.current-user {
+  animation: show-chat-odd 0.15s 1 ease-in;
+  -moz-animation: show-chat-odd 0.15s 1 ease-in;
+  -webkit-animation: show-chat-odd 0.15s 1 ease-in;
+  float: right;
+  margin-right: 80px;
+  color: #0e0e0e;
+  background-color:cornflowerblue;
+
+}
+
+.current-user:before {
+  right: 80px;
+}
+
+.current-user:after {
+  border-top: 15px solid cornflowerblue;
+  border-right: 15px solid transparent;
+  right: -14px;
   top: 10px;
 }
 
@@ -152,6 +174,12 @@ li:nth-child(even):after {
   border-radius: 20px;       /* roundness of the scroll thumb */
   /*border: 3px solid orange;  !* creates padding around scroll thumb *!*/
 }
+
+.username{
+  font-size: 12px;
+  font-family: emoji;
+}
+
 /*.chat-window {*/
 /*  position: fixed;*/
 /*  bottom: 18px;*/

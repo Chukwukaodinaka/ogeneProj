@@ -4,7 +4,7 @@
       <ion-toolbar>
         <div class="heading_m">
           <ion-icon :icon="personCircleOutline" style="margin: 5px" size="large"  />
-          <ion-title>Dave{{messages.length}}</ion-title>
+          <ion-title>Welcome {{computedState.username}}!</ion-title>
           <div class="options">
             <ion-icon :icon="callOutline" class="chat_option"/>
             <ion-icon :icon="videocamOutline" class="chat_option"/>
@@ -14,7 +14,7 @@
       </ion-toolbar>
     </ion-header>
     <ion-content  :fullscreen="true">
-      <ExploreContainer  id="chatContainer"  :messages="messages" @scroll-bottom="updateScroll" name="Tab 1 page" />
+      <ExploreContainer  id="chatContainer" @scroll-bottom="updateScroll" name="Tab 1 page" />
     </ion-content>
   </ion-page>
 </template>
@@ -24,6 +24,7 @@ import { defineComponent } from 'vue';
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/vue';
 import { personCircleOutline,callOutline,videocamOutline,ellipsisVerticalOutline } from 'ionicons/icons'
 import ExploreContainer from '@/components/ExploreContainer.vue';
+import state from "@/state/main";
 
 export default  defineComponent({
   name: 'Tab1Page',
@@ -31,6 +32,11 @@ export default  defineComponent({
   data : function () {
     return{
       prevScrollY:0
+    }
+  },
+  computed:{
+    computedState: function () {
+      return state
     }
   },
   setup(){
@@ -41,9 +47,9 @@ export default  defineComponent({
       ellipsisVerticalOutline
     }
   },
-  inject : [
-      'messages'
-  ],
+  // inject : [
+  //     'messages'
+  // ],
   methods:{
     updateScroll(){
 
@@ -91,6 +97,7 @@ ion-content{
   overflow-y:scroll;
   padding-top: 5px;
   margin-top: 0px !important;
+  background-color: #d8e5eb
 }
 
 
