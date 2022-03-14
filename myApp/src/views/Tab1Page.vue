@@ -4,11 +4,11 @@
       <ion-toolbar>
         <div class="heading_m">
           <ion-icon :icon="personCircleOutline" style="margin: 5px" size="large"  />
-          <ion-title>Welcome {{computedState.username}}!</ion-title>
+          <ion-title>{{ computedState.chatToId.username }}</ion-title>
           <div class="options">
             <ion-icon :icon="callOutline" class="chat_option"/>
-            <ion-icon :icon="videocamOutline" class="chat_option"/>
-            <ion-icon :icon="ellipsisVerticalOutline" class="chat_option"/>
+            <ion-icon :icon="thumbsUpOutline" @click="addFriend" class="chat_option"/>
+            <ion-icon :icon="ellipsisVerticalOutline" class="chat_option" />
           </div>
         </div>
       </ion-toolbar>
@@ -19,12 +19,13 @@
   </ion-page>
 </template>
 
-<script lang="ts">
+<script >
 import { defineComponent } from 'vue';
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent } from '@ionic/vue';
-import { personCircleOutline,callOutline,videocamOutline,ellipsisVerticalOutline } from 'ionicons/icons'
+import { personCircleOutline,callOutline,videocamOutline,ellipsisVerticalOutline,thumbsUpOutline } from 'ionicons/icons'
 import ExploreContainer from '@/components/ExploreContainer.vue';
 import state from "@/state/main";
+import {getDatabase, push, ref, child,update,get} from "firebase/database";
 
 export default  defineComponent({
   name: 'Tab1Page',
@@ -43,8 +44,8 @@ export default  defineComponent({
     return{
       personCircleOutline,
       callOutline,
-      videocamOutline,
-      ellipsisVerticalOutline
+      ellipsisVerticalOutline,
+      thumbsUpOutline
     }
   },
   // inject : [
@@ -63,6 +64,35 @@ export default  defineComponent({
         })
         this.prevScrollY = element.scrollHeight - element.clientHeight
       }
+    },
+    async addFriend() {
+      const db = getDatabase()
+      let userId = this.computedState.userId
+      let friends = []
+      const messagesRef = ref(db, 'users/' + userId)
+      const dbRef = ref(getDatabase());
+      //gets all friends so we can then add to list and then send them back
+      await get(child(dbRef, `users/${userId}`)).then((snapshot) => {
+        if (snapshot.exists()) {
+          if(snapshot.val().friends != null)
+          {
+            console.log(snapshot.val().friends)
+            friends.push(...snapshot.val().friends)
+          }
+
+        } else {
+          console.log("No data available");
+        }
+      }).catch((error) => {
+        console.error(error);
+      });
+      //makes sure we don't add the same friend twice!
+      if(friends.some(friend => friend.id != state.chatToId.id)){
+        friends.push(state.chatToId)
+      }
+
+      update(messagesRef, {friends: friends})
+
     }
   }
 });

@@ -1,6 +1,8 @@
 <template>
 
   <div id="chatMessages" slot="fixed" style="margin-top: 10px">
+
+
     <li v-for="message in computedState.messages" :key="message.id" :class="(message.username == computedState.username ? 'current-user':'not-current-user' )">
       <span class="username">{{message.username}}</span>
       <p>{{message.content}}</p>
@@ -12,7 +14,7 @@
 <script >
 import { defineComponent } from 'vue';
 import state from "@/state/main";
-import {getDatabase,ref,onValue} from "firebase/database"
+import {getDatabase, ref, onValue, set, get, child} from "firebase/database"
 
 
 export default defineComponent({
@@ -30,25 +32,43 @@ export default defineComponent({
   },
   mounted() {
     const database = getDatabase()
-    const messagesRef = ref(database, 'messages')
+    let a = [state.chatToId.id,state.userId]
+    a.sort()
+    let path = a.toString()
+    console.log(path)
 
+    const dbRef = ref(getDatabase());
 
-    // eslint-disable-next-line
-    let vm = this
-
-    onValue(messagesRef, (snapshot) => {
-      const data = snapshot.val()
-      let messages = []
-      Object.keys(data).forEach(key => {
-        messages.push({
-          id: key,
-          username: data[key].username,
-          content: data[key].content
+    function getMessagesOfSnapshot(path) {
+      const messagesRef = ref(database, `messages/${path}`)
+      onValue(messagesRef, (snapshot) => {
+        const data = snapshot.val()
+        let messages = []
+        Object.keys(data).forEach(key => {
+          messages.push({
+            id: key,
+            username: data[key].username,
+            content: data[key].content
+          })
         })
-      })
 
-      state.messages = messages
-      console.log(JSON.stringify(state) + "kskdk")
+        messages.pop()
+        state.messages = messages
+        console.log(JSON.stringify(state) + "kskdk")
+      });
+    }
+
+    //gets all friends so we can then add to list and then send them back
+     get(child(dbRef, `messages/${path}`)).then((snapshot) => {
+      if (snapshot.exists()) {
+        getMessagesOfSnapshot(path)
+      } else {
+        set(ref(database, `messages/${path}`),{
+         created:true
+        }).then(getMessagesOfSnapshot(path))
+      }
+    }).catch((error) => {
+      console.error(error);
     });
   },
   watch:{

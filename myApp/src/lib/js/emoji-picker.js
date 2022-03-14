@@ -32,7 +32,7 @@ export class EmojiPicker {
       emojiPopup: this,
       norealTime: true
     }, this.options))
-  };
+  }
 
   generateEmojiIconSets (options) {
     var column, dataItem, i, icons, j, name, reverseIcons, row, totalColumns

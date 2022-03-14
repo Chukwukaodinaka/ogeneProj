@@ -70,7 +70,7 @@ export default () => {
 
       callback(single ? result[0] : result)
     })
-  };
+  }
 
   function storageSetValue (obj, callback) {
     var keyValues = {},
@@ -103,7 +103,7 @@ export default () => {
     }
 
     chrome.storage.local.set(keyValues, callback)
-  };
+  }
 
   function storageRemoveValue () {
     var keys = Array.prototype.slice.call(arguments),
@@ -130,7 +130,7 @@ export default () => {
     } else if (callback) {
       callback()
     }
-  };
+  }
 
   window.ConfigStorage = {
     prefix: storageSetPrefix,
